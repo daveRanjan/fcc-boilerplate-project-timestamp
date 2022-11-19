@@ -1,5 +1,7 @@
 // index.js
 // where your node app starts
+var {DateTime, Settings} = require('luxon');
+Settings.throwOnInvalid=true;
 
 // init project
 var express = require('express');
@@ -24,7 +26,34 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get("/api", function (req, res) {
+    let date = DateTime.now().setZone('GMT');
+    res.json({
+        unix: date.toUnixInteger(),
+        utc: date.toFormat("ccc, dd MMM yyyy 00:00:00 ZZZZ")
+    });  
+});
 
+app.get("/api/:date", function (req, res) {
+    const param = req.params.date;
+    let isUnix = /^\d+$/.test(param);
+     try {
+        if(!isUnix){
+            date = DateTime.fromISO(param, {zone: 'GMT'});
+        }else {
+            date = DateTime.fromMillis(Number.parseInt(param), {zone: 'GMT'});
+        }
+    }catch (ex){
+        res.json({
+            error: "Invalid Date"
+        })
+    }
+
+    res.json({
+        unix: date.toUnixInteger(),
+        utc: date.toFormat("ccc, dd MMM yyyy 00:00:00 ZZZZ")
+    });
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
